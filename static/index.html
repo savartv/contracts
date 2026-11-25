@@ -1,0 +1,506 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Генератор договоров</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap');
+  *{box-sizing:border-box}
+  body{
+    font:15px/1.5 'Montserrat', system-ui, sans-serif;
+    max-width:1050px;margin:24px auto;padding:0 18px;
+    color:#f0f0f0;
+    background: #0a0a0c;
+    background-image: radial-gradient(circle at 50% 0%, #2a0a1a 0%, #0a0a0c 60%);
+    min-height: 100vh;
+  }
+  h1{
+    margin:0 0 6px;font-weight: 800;font-size: 32px;letter-spacing: 0.5px;
+    background: linear-gradient(135deg, #ffb6e6 0%, #ff1493 50%, #d63384 100%);
+    -webkit-background-clip: text;-webkit-text-fill-color: transparent;background-clip: text;
+  }
+  .subtitle{color:#a0a0a8;margin-bottom:22px; font-weight: 400;}
+
+  .quick-links-title{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#ff69b4;font-weight:700;margin-bottom:10px;}
+  .quick-links{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:28px;}
+  .quick-links a{
+    display:flex;align-items:center;gap:12px;padding:12px 16px;
+    background:#141418;border:1px solid #2a2a32;border-radius:14px;
+    text-decoration:none;color:#fff;transition: all .2s;
+  }
+  .quick-links a:hover{border-color:#ff1493;box-shadow: 0 4px 20px rgba(255,20,147,0.2);transform: translateY(-2px);}
+  .quick-links a .ql-icon{font-size:22px;filter: drop-shadow(0 0 6px rgba(255,20,147,0.5));flex-shrink:0;}
+  .quick-links a b{display:block;font-size:13px;font-weight:700;color:#fff;line-height:1.2;}
+  .quick-links a small{display:block;font-size:10px;color:#a0a0a8;margin-top:2px;line-height:1.2;}
+
+  .new-tab-hint{
+    display:none;margin-bottom:16px;padding:12px 18px;
+    background: rgba(255,20,147,0.08);border:1px solid rgba(255,20,147,0.4);
+    border-radius:12px;color:#ffb6e6;font-size:13px;
+  }
+  .new-tab-hint b{color:#ff1493}
+
+  #screen-picker{display:block}
+  .tpl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
+  .tpl-card{
+    background:#141418;border:2px solid #2a2a32;border-radius:22px;
+    padding:24px 20px;cursor:pointer;user-select:none;
+    transition:all .25s ease;min-height:140px;
+    display:flex;flex-direction:column;justify-content:space-between;
+    position: relative;overflow: hidden;
+  }
+  .tpl-card:hover{border-color:#ff1493;transform:translateY(-4px);box-shadow: 0 8px 30px rgba(255, 20, 147, 0.25), inset 0 0 20px rgba(255, 20, 147, 0.05);}
+  .tpl-card .icon{font-size:38px;margin-bottom:12px; filter: drop-shadow(0 0 8px rgba(255,20,147,0.5));}
+  .tpl-card .name{font-weight:700;font-size:15px;line-height:1.35; color:#fff;}
+  .tpl-card .hint{color:#666;font-size:11px;margin-top:8px;word-break:break-all; font-family: monospace;}
+  .tpl-card .new-tab-mark{
+    position:absolute;top:14px;right:16px;font-size:14px;color:#666;
+    transition:color .2s;
+  }
+  .tpl-card:hover .new-tab-mark{color:#ff1493;}
+
+  .empty-hint{padding:40px;background:#141418;border:2px dashed #ff1493;border-radius:22px;text-align:center;color:#ffb6e6}
+  .empty-hint code{background:#2a0a1a;padding:4px 8px;border-radius:6px;color:#ff69b4}
+
+  #screen-form{display:none}
+  .topbar{display:flex;align-items:center;gap:16px;margin-bottom:20px;background:#141418;padding:16px 22px;border-radius:18px;border:1px solid #2a2a32;}
+  .topbar button.back{background:none;color:#ff1493;font-size:14px;padding:8px 14px;border-radius:10px;border:0;cursor:pointer;font-weight:600;transition: all .2s;}
+  .topbar button.back:hover{background:rgba(255,20,147,0.1)}
+  .topbar .chosen{font-weight:700;font-size:15px; color:#fff;}
+  .topbar .label{color:#a0a0a8;font-size:12px;display:block; margin-bottom:2px;}
+
+  .section{background:#141418;border:1px solid #2a2a32;border-radius:18px;padding:18px 22px;margin-bottom:16px;}
+  .section h3{margin:0 0 16px;font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#ff69b4; font-weight: 700;}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px 16px}
+  .grid.two{grid-template-columns:repeat(2,1fr)}
+  label.field{display:block;font-size:11px;color:#a0a0a8;margin-bottom:5px; font-weight:500;}
+  input{width:100%;padding:10px 14px;border:1px solid #33333c;border-radius:12px;font:inherit;background:#0a0a0c;color:#fff;transition: all .2s;}
+  input:focus{outline:none;border-color:#ff1493;box-shadow: 0 0 0 3px rgba(255,20,147,0.15);}
+  input[readonly]{background:#1a1a22;color:#ffb6e6;font-weight:600; border-color: #2a2a32;}
+
+  .actions{display:flex;gap:14px;align-items:center;margin-top:22px;flex-wrap:wrap}
+  button.primary{padding:14px 32px;border:0;border-radius:50px;background: linear-gradient(135deg, #ff1493 0%, #d63384 100%);color:#fff;font-size:16px;cursor:pointer;font-weight:700;box-shadow: 0 4px 20px rgba(255,20,147,0.4);transition: all .2s;}
+  button.primary:hover{transform: translateY(-2px);box-shadow: 0 6px 25px rgba(255,20,147,0.6);}
+  button.ghost{padding:14px 26px;border:0;border-radius:50px;background:#22222a;color:#ccc;font-size:15px;cursor:pointer;font-weight:600; transition: all .2s;}
+  button.ghost:hover{background:#2a2a32; color:#fff;}
+  .status{color:#a0a0a8;font-size:13px}
+  .result a{display:inline-block;margin:14px 12px 0 0;padding:14px 26px;background: rgba(255,20,147,0.1);border: 1px solid #ff1493;border-radius:50px;text-decoration:none;color:#ff69b4;font-weight:700;transition: all .2s;}
+  .result a:hover{background: rgba(255,20,147,0.2);box-shadow: 0 0 15px rgba(255,20,147,0.3);}
+</style>
+</head>
+<body>
+
+<!-- ============ ЭКРАН 1: выбор шаблона ============ -->
+<div id="screen-picker">
+  <h1>Генератор договоров</h1>
+  <div class="subtitle">Выберите документ — форма откроется в новой вкладке:</div>
+
+  <div class="quick-links-title">Полезные сервисы проверки</div>
+  <div class="quick-links">
+    <a href="https://service.nalog.ru/inn.do" target="_blank" rel="noopener">
+      <span class="ql-icon">🔍</span>
+      <span><b>Проверить ИНН</b><small>Сервис ФНС России</small></span>
+    </a>
+    <a href="https://bik-info.ru/" target="_blank" rel="noopener">
+      <span class="ql-icon">🏦</span>
+      <span><b>Проверить БИК</b><small>Справочник банков РФ</small></span>
+    </a>
+    <a href="https://мвд.рф/servisy/proverka-pasporta" target="_blank" rel="noopener">
+      <span class="ql-icon">🪪</span>
+      <span><b>Проверить паспорт</b><small>Сервис МВД</small></span>
+    </a>
+    <a href="https://egrul.nalog.ru/" target="_blank" rel="noopener">
+      <span class="ql-icon">🏢</span>
+      <span><b>Проверить контрагента</b><small>ЕГРЮЛ / ЕГРИП ФНС</small></span>
+    </a>
+    <a href="https://sfr.gov.ru/" target="_blank" rel="noopener">
+      <span class="ql-icon">📋</span>
+      <span><b>Проверить СНИЛС</b><small>СФР России</small></span>
+    </a>
+  </div>
+
+  <div class="tpl-grid" id="tpls"></div>
+  <div class="empty-hint" id="empty-hint" style="display:none">
+    В папке <code>templates_docx</code> пока нет шаблонов Word.<br><br>
+    Скопируйте туда ваши <code>.docx</code>-файлы и обновите страницу.
+  </div>
+</div>
+
+<!-- ============ ЭКРАН 2: форма ============ -->
+<div id="screen-form">
+  <div class="topbar">
+    <button class="back" onclick="backToPicker()">← Выбрать другой документ</button>
+    <div style="margin-left:auto;text-align:right">
+      <span class="label">Выбранный шаблон</span>
+      <span class="chosen" id="chosen-name">—</span>
+    </div>
+  </div>
+
+  <div class="new-tab-hint" id="new-tab-hint">
+    💡 Эта форма открыта в новой вкладке. Проверить ИНН, БИК или другие данные можно
+    в <b>первой вкладке</b> с сайтом — она осталась нетронутой.
+  </div>
+
+  <div class="section">
+    <h3>Программа и съёмки</h3>
+    <div class="grid">
+      <div><label class="field">Дата съёмок</label><input id="shoot_date" placeholder="дд.мм.гггг" oninput="maskDate(this)" onblur="finalizeDate(this)"></div>
+      <div><label class="field">Время прибытия</label><input id="arrival_time" placeholder="чч:мм" oninput="maskTime(this)" onblur="formatTime(this)"></div>
+      <div><label class="field">&nbsp;</label></div>
+      <div style="grid-column:span 3"><label class="field">Название программы / Тема выпуска</label><input id="program_topic"></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>Участник</h3>
+    <div class="grid">
+      <div style="grid-column:span 3"><label class="field">ФИО (полностью: Фамилия Имя Отчество)</label><input id="fio" oninput="updateInitials()" placeholder="Иванов Иван Иванович"></div>
+      <div><label class="field">Инициалы (именительный)</label><input id="initials" readonly></div>
+      <div style="grid-column:span 2"><label class="field">Инициалы (родительный — «от кого»)</label><input id="initials_genitive" readonly></div>
+      <div><label class="field">Дата рождения</label><input id="birth_date" placeholder="дд.мм.гггг" oninput="maskDate(this)" onblur="finalizeDate(this)"></div>
+      <div><label class="field">Серия паспорта</label><input id="passport_series"></div>
+      <div><label class="field">Номер паспорта</label><input id="passport_number"></div>
+      <div style="grid-column:span 2"><label class="field">Кем выдан</label><input id="passport_issued_by"></div>
+      <div><label class="field">Дата выдачи</label><input id="passport_issue_date" placeholder="дд.мм.гггг" oninput="maskDate(this)" onblur="finalizeDate(this)"></div>
+      <div><label class="field">Код подразделения</label><input id="passport_department_code" placeholder="000-000" oninput="maskDeptCode(this)"></div>
+      <div style="grid-column:span 2"><label class="field">Адрес регистрации</label><input id="address"></div>
+    </div>
+  </div>
+
+  <div id="fee_block" style="display:none">
+    <div class="section">
+      <h3>Гонорар</h3>
+      <div class="grid">
+        <div><label class="field">Сумма гонорара</label><input id="sum" placeholder="22 735" oninput="formatSum()"></div>
+        <div style="grid-column:span 2"><label class="field">Сумма прописью (автоматически)</label><input id="sum_words" readonly></div>
+        <div><label class="field">ИНН</label><input id="inn"></div>
+        <div><label class="field">СНИЛС</label><input id="snils"></div>
+      </div>
+    </div>
+
+    <div class="section" id="bank_block">
+      <h3>Банковские реквизиты</h3>
+      <div class="grid">
+        <div style="grid-column:span 3"><label class="field">Название банка</label><input id="bank_name"></div>
+        <div><label class="field">БИК</label><input id="bik"></div>
+        <div><label class="field">Корр. счёт</label><input id="corr_account"></div>
+        <div><label class="field">Расчётный счёт</label><input id="account"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="primary" onclick="gen()">Сгенерировать документ</button>
+    <button class="ghost" onclick="clearForm()">Очистить</button>
+    <span class="status" id="status"></span>
+  </div>
+
+  <div class="result" id="res"></div>
+</div>
+
+<script>
+const FIELDS = [
+  "shoot_date","arrival_time","program_topic",
+  "fio","initials","initials_genitive","birth_date","passport_series","passport_number",
+  "passport_issued_by","passport_issue_date","passport_department_code",
+  "address",
+  "sum","sum_words","inn","snils",
+  "bank_name","bik","corr_account","account"
+];
+
+const DEFAULTS = {
+  shoot_date:               '«___»____________ 202_ г.',
+  arrival_time:             '___ ч. ___ мин',
+  program_topic:            '_____________________________________________________________',
+  fio:                      '_____________________________________________________________',
+  initials:                 '_______________________',
+  initials_genitive:        '_______________________',
+  birth_date:               '«___» ______________ _____ г.',
+  passport_series:          '__________',
+  passport_number:          '__________',
+  passport_issued_by:       '___________________________________________',
+  passport_issue_date:      '«___» ______________ _____ г.',
+  passport_department_code: '___-____',
+  address:                  '_____________________________________________',
+  sum:                      '_____________',
+  sum_words:                '(_________________________________________) рублей 00 копеек',
+  inn:                      '___________________',
+  snils:                    '___________________',
+  bank_name:                '_________________________________',
+  bik:                      '_____________________________',
+  corr_account:             '_____________________________',
+  account:                  '_____________________________'
+};
+
+let activeTpl = null;
+
+function hasFeeByName(id){
+  const low = id.toLowerCase();
+  if (low.includes('soglashenie') || low.includes('безвозмезд') || low.includes('безвозм')) return false;
+  if (low.includes('dogovor') || low.includes('возмезд') || low.includes('гонорар') ||
+      low.includes('beznal') || low.includes('нал')) return true;
+  return false;
+}
+
+// ---- Загрузка шаблонов ----
+function loadTemplates(){
+  fetch('/api/templates').then(r=>r.json()).then(list=>{
+    const box = document.getElementById('tpls');
+    const empty = document.getElementById('empty-hint');
+    box.innerHTML = '';
+    if (!list.length){ empty.style.display='block'; return; }
+    empty.style.display='none';
+    list.forEach(t=>{
+      const c = document.createElement('div');
+      c.className='tpl-card';
+      const icon = hasFeeByName(t.id) ? '💰' : '📄';
+      c.innerHTML = `
+        <div class="new-tab-mark">↗</div>
+        <div>
+          <div class="icon">${icon}</div>
+          <div class="name">${t.name}</div>
+        </div>
+        <div class="hint">${t.id}.docx</div>
+      `;
+      // Открываем форму в НОВОЙ вкладке
+      c.onclick = () => {
+        const url = location.pathname + '?tpl=' + encodeURIComponent(t.id);
+        window.open(url, '_blank');
+      };
+      box.appendChild(c);
+    });
+
+    // Если в URL есть ?tpl=... — сразу открываем форму
+    const params = new URLSearchParams(location.search);
+    const tplId = params.get('tpl');
+    if (tplId){
+      const found = list.find(x => x.id === tplId);
+      if (found) openFormFor(found);
+    }
+  });
+}
+loadTemplates();
+
+// ---- Открываем форму для выбранного шаблона (внутри уже открытой страницы) ----
+function openFormFor(t){
+  activeTpl = t.id;
+  document.getElementById('chosen-name').textContent = t.name;
+  document.getElementById('screen-picker').style.display = 'none';
+  document.getElementById('screen-form').style.display = 'block';
+  document.getElementById('new-tab-hint').style.display = 'block';
+  window.scrollTo(0,0);
+  const feeOn = hasFeeByName(t.id);
+  document.getElementById('fee_block').style.display = feeOn ? 'block' : 'none';
+}
+
+// ---- Возвращаемся к списку шаблонов ----
+function backToPicker(){
+  history.replaceState(null, '', location.pathname);
+  document.getElementById('screen-form').style.display = 'none';
+  document.getElementById('screen-picker').style.display = 'block';
+  document.getElementById('new-tab-hint').style.display = 'none';
+  document.getElementById('res').innerHTML = '';
+  document.getElementById('status').textContent = '';
+  window.scrollTo(0,0);
+}
+
+// ---- МАСКИ ВВОДА ----
+function maskDate(el){
+  let v = el.value.replace(/\D/g, '').slice(0, 8);
+  let out = '';
+  if (v.length > 0) out = v.slice(0, 2);
+  if (v.length > 2) out += '.' + v.slice(2, 4);
+  if (v.length > 4) out += '.' + v.slice(4, 8);
+  el.value = out;
+}
+
+const MONTHS_GENITIVE = [
+  'января','февраля','марта','апреля','мая','июня',
+  'июля','августа','сентября','октября','ноября','декабря'
+];
+
+function finalizeDate(el){
+  let v = el.value.replace(/\D/g, '');
+  if (v.length !== 8) return;
+  const dd   = v.slice(0, 2);
+  const mm   = parseInt(v.slice(2, 4), 10);
+  const yyyy = v.slice(4, 8);
+
+  // Для поля "Дата съёмок" — «30» октября 2026 г. (день в кавычках-ёлочках)
+  if (el.id === 'shoot_date' && mm >= 1 && mm <= 12){
+    const dayNum = parseInt(dd, 10);
+    el.value = '«' + dayNum + '» ' + MONTHS_GENITIVE[mm - 1] + ' ' + yyyy + ' г.';
+    return;
+  }
+
+  // Для остальных дат — 12.09.2026 г.
+  el.value = dd + '.' + v.slice(2, 4) + '.' + yyyy + ' г.';
+}
+
+function maskTime(el){
+  let v = el.value.replace(/\D/g, '').slice(0, 4);
+  let out = '';
+  if (v.length > 0) out = v.slice(0, 2);
+  if (v.length > 2) out += ':' + v.slice(2, 4);
+  el.value = out;
+}
+
+function formatTime(el){
+  let v = el.value.replace(/\D/g, '');
+  if (v.length >= 2){
+    let hh = v.slice(0, 2);
+    let mm = v.slice(2, 4) || '00';
+    el.value = hh + ' ч. ' + mm + ' мин';
+  }
+}
+
+function maskDeptCode(el){
+  let v = el.value.replace(/\D/g, '').slice(0, 6);
+  let out = v.slice(0, 3);
+  if (v.length > 3) out += '-' + v.slice(3, 6);
+  el.value = out;
+}
+
+// ---- Пол и склонение фамилии ----
+function detectGender(otchestvo){
+  if (!otchestvo) return 'm';
+  const low = otchestvo.toLowerCase();
+  if (low.endsWith('овна') || low.endsWith('евна') || low.endsWith('инична') || low.endsWith('ична')) return 'f';
+  if (low.endsWith('ович') || low.endsWith('евич') || low.endsWith('ич')) return 'm';
+  return 'm';
+}
+
+function declineSurname(surname, gender){
+  if (!surname) return surname;
+  const low = surname.toLowerCase();
+  if (gender === 'f'){
+    if (low.endsWith('ова') || low.endsWith('ева') || low.endsWith('ёва') || low.endsWith('ина') || low.endsWith('ына')){
+      return surname.slice(0, -1) + 'ой';
+    }
+    if (low.endsWith('ская') || low.endsWith('цкая')) return surname.slice(0, -2) + 'ой';
+    if (low.endsWith('ая')) return surname.slice(0, -2) + 'ой';
+    if (/[бвгджзклмнпрстфхцчшщ]$/.test(low)) return surname;
+    return surname;
+  }
+  if (low.endsWith('ский') || low.endsWith('цкий')) return surname.slice(0, -2) + 'ого';
+  if (low.endsWith('ий') || low.endsWith('ый')) return surname.slice(0, -2) + 'ого';
+  if (low.endsWith('ой')) return surname.slice(0, -2) + 'ого';
+  if (low.endsWith('ь')) return surname.slice(0, -1) + 'я';
+  if (/[бвгджзклмнпрстфхцчшщ]$/.test(low)) return surname + 'а';
+  return surname;
+}
+
+function updateInitials(){
+  const fio = document.getElementById('fio').value.trim();
+  const parts = fio.split(/\s+/).filter(p => p.length > 0);
+  if (parts.length === 0){
+    document.getElementById('initials').value = '';
+    document.getElementById('initials_genitive').value = '';
+    return;
+  }
+  let initialsShort = '';
+  for (let i = 1; i < parts.length; i++){
+    initialsShort += ' ' + parts[i][0].toUpperCase() + '.';
+  }
+  const nominative = parts[0] + initialsShort;
+  const otchestvo = parts[2] || '';
+  const gender = detectGender(otchestvo);
+  const declined = declineSurname(parts[0], gender);
+  const genitive = declined + initialsShort;
+  document.getElementById('initials').value = nominative;
+  document.getElementById('initials_genitive').value = genitive;
+}
+
+// ---- Сумма прописью ----
+function formatSum() {
+  let v = document.getElementById('sum').value.replace(/\s/g, '');
+  let num = parseInt(v.replace(/\D/g, ''));
+  if (!isNaN(num)) document.getElementById('sum').value = num.toLocaleString('ru-RU');
+  updateSumWords();
+}
+function plural(n, forms) {
+  let n1 = n % 10, n2 = n % 100;
+  if (n2 >= 11 && n2 <= 19) return forms[2];
+  if (n1 === 1) return forms[0];
+  if (n1 >= 2 && n1 <= 4) return forms[1];
+  return forms[2];
+}
+function numToWords(num) {
+  const units = ['', 'один', 'два', 'три', 'четыре', 'пять', 'шесть', 'семь', 'восемь', 'девять'];
+  const unitsF = ['', 'одна', 'две', 'три', 'четыре', 'пять', 'шесть', 'семь', 'восемь', 'девять'];
+  const teens = ['десять', 'одиннадцать', 'двенадцать', 'тринадцать', 'четырнадцать', 'пятнадцать', 'шестнадцать', 'семнадцать', 'восемнадцать', 'девятнадцать'];
+  const tens = ['', '', 'двадцать', 'тридцать', 'сорок', 'пятьдесят', 'шестьдесят', 'семьдесят', 'восемьдесят', 'девяносто'];
+  const hundreds = ['', 'сто', 'двести', 'триста', 'четыреста', 'пятьсот', 'шестьсот', 'семьсот', 'восемьсот', 'девятьсот'];
+  function parseHundreds(n, feminine) {
+    let str = '';
+    let h = Math.floor(n / 100), t = Math.floor((n % 100) / 10), u = n % 10;
+    if (h) str += hundreds[h] + ' ';
+    if (t === 1) str += teens[u] + ' ';
+    else {
+      if (t) str += tens[t] + ' ';
+      if (u) str += (feminine ? unitsF[u] : units[u]) + ' ';
+    }
+    return str.trim();
+  }
+  let rub = Math.floor(num);
+  if (rub === 0) return 'ноль';
+  let result = '';
+  let millions = Math.floor(rub / 1000000);
+  let thousands = Math.floor((rub % 1000000) / 1000);
+  let unitsPart = rub % 1000;
+  if (millions > 0) result += parseHundreds(millions, false) + ' ' + plural(millions, ['миллион', 'миллиона', 'миллионов']) + ' ';
+  if (thousands > 0) result += parseHundreds(thousands, true) + ' ' + plural(thousands, ['тысяча', 'тысячи', 'тысяч']) + ' ';
+  if (unitsPart > 0) result += parseHundreds(unitsPart, false) + ' ';
+  return result.trim();
+}
+function updateSumWords() {
+  let input = document.getElementById('sum').value.replace(/\s/g, '');
+  let sum = parseFloat(input);
+  if (isNaN(sum)) { document.getElementById('sum_words').value = ''; return; }
+  let rub = Math.floor(sum);
+  let kop = Math.round((sum - rub) * 100);
+  let words = numToWords(rub);
+  words = words.charAt(0).toUpperCase() + words.slice(1);
+  let rubWord = plural(rub, ['рубль', 'рубля', 'рублей']);
+  let kopWord = plural(kop, ['копейка', 'копейки', 'копеек']);
+  let kopStr = String(kop).padStart(2, '0');
+  document.getElementById('sum_words').value = `(${words}) ${rubWord} ${kopStr} ${kopWord}`;
+}
+
+function getData(){
+  const o = {};
+  FIELDS.forEach(k => {
+    const el = document.getElementById(k);
+    const v = el ? el.value.trim() : '';
+    o[k] = v || DEFAULTS[k] || '';
+  });
+  return o;
+}
+
+function clearForm(){
+  FIELDS.forEach(k => {
+    const el = document.getElementById(k);
+    if (el && !el.readOnly) el.value = '';
+  });
+  document.getElementById('res').innerHTML = '';
+  document.getElementById('status').textContent = '';
+}
+
+async function gen(){
+  if (!activeTpl){ alert('Сначала выберите шаблон'); return; }
+  const status = document.getElementById('status');
+  status.textContent = 'Генерирую...';
+  document.getElementById('res').innerHTML = '';
+  const fd = new FormData();
+  fd.append('template_id', activeTpl);
+  fd.append('data', JSON.stringify(getData()));
+  const r = await fetch('/api/generate',{method:'POST',body:fd}).then(r=>r.json());
+  if (r.error){ status.textContent = r.error; return; }
+  status.textContent = 'Готово';
+  document.getElementById('res').innerHTML =
+    `<a href="${r.docx}" download>⬇ Скачать Word</a>` +
+    (r.pdf ? `<a href="${r.pdf}" download>⬇ Скачать PDF</a>` : '');
+}
+</script>
+</body>
+</html>
